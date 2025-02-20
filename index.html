@@ -104,6 +104,62 @@
     <div id="result" class="result hidden"></div>
 
     <script>
+        // Add event listeners to all inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('input', checkNotificationRequired);
+            });
+        });
+
+        function checkNotificationRequired() {
+            const combinedTurnover = Number(document.getElementById('combinedTurnover').value) || 0;
+            const acquirerTurnover = Number(document.getElementById('acquirerTurnover').value) || 0;
+            const businessesOver50M = Number(document.getElementById('businessesOver50M').value) || 0;
+            const businessesOver10M = Number(document.getElementById('businessesOver10M').value) || 0;
+            const globalValue = Number(document.getElementById('globalValue').value) || 0;
+            const cumulativeTurnover = Number(document.getElementById('cumulativeTurnover').value) || 0;
+
+            let notificationRequired = false;
+            let reasons = [];
+
+            // Economy-wide threshold
+            if (combinedTurnover > 200000000 && 
+                (businessesOver50M >= 2 || globalValue > 250000000)) {
+                notificationRequired = true;
+                reasons.push("Economy-wide threshold met");
+            }
+
+            // Very large acquirers threshold
+            if (acquirerTurnover > 500000000 && businessesOver10M >= 2) {
+                notificationRequired = true;
+                reasons.push("Very large acquirers threshold met");
+            }
+
+            // Serial acquirers - medium-to-large
+            if (combinedTurnover > 200000000 && cumulativeTurnover >= 50000000) {
+                notificationRequired = true;
+                reasons.push("Serial acquirers (medium-to-large) threshold met");
+            }
+
+            // Serial acquirers - very large
+            if (acquirerTurnover > 500000000 && cumulativeTurnover >= 10000000) {
+                notificationRequired = true;
+                reasons.push("Serial acquirers (very large) threshold met");
+            }
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.classList.remove('hidden');
+            
+            if (notificationRequired) {
+                resultDiv.className = 'result notification-required';
+                resultDiv.innerHTML = `<strong>Notification is required.</strong><br>Reasons:<br>${reasons.map(r => '- ' + r).join('<br>')}`;
+            } else {
+                resultDiv.className = 'result';
+                resultDiv.innerHTML = '';
+            }
+        }
+
         function assessNotification() {
             const combinedTurnover = Number(document.getElementById('combinedTurnover').value) || 0;
             const acquirerTurnover = Number(document.getElementById('acquirerTurnover').value) || 0;
