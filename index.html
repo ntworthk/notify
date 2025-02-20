@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merger Notification Assessment Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .section {
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: 200px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .notification-required {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .notification-not-required {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Merger Notification Assessment Tool</h1>
+    
+    <div class="section">
+        <h2>Basic Information</h2>
+        <div class="form-group">
+            <label>Combined Australian turnover of merger group (AUD):</label>
+            <input type="number" id="combinedTurnover" min="0">
+        </div>
+        <div class="form-group">
+            <label>Acquirer group's Australian turnover (AUD):</label>
+            <input type="number" id="acquirerTurnover" min="0">
+        </div>
+        <div class="form-group">
+            <label>Number of businesses to be merged with turnover > $50M:</label>
+            <input type="number" id="businessesOver50M" min="0">
+        </div>
+        <div class="form-group">
+            <label>Number of businesses to be merged with turnover > $10M:</label>
+            <input type="number" id="businessesOver10M" min="0">
+        </div>
+        <div class="form-group">
+            <label>Global transaction value (AUD):</label>
+            <input type="number" id="globalValue" min="0">
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Serial Acquisitions</h2>
+        <div class="form-group">
+            <label>Cumulative Australian turnover from acquisitions in same/substitutable sectors (3 years):</label>
+            <input type="number" id="cumulativeTurnover" min="0">
+        </div>
+    </div>
+
+    <button onclick="assessNotification()">Assess Notification Requirement</button>
+
+    <div id="result" class="result hidden"></div>
+
+    <script>
+        function assessNotification() {
+            const combinedTurnover = Number(document.getElementById('combinedTurnover').value) || 0;
+            const acquirerTurnover = Number(document.getElementById('acquirerTurnover').value) || 0;
+            const businessesOver50M = Number(document.getElementById('businessesOver50M').value) || 0;
+            const businessesOver10M = Number(document.getElementById('businessesOver10M').value) || 0;
+            const globalValue = Number(document.getElementById('globalValue').value) || 0;
+            const cumulativeTurnover = Number(document.getElementById('cumulativeTurnover').value) || 0;
+
+            let notificationRequired = false;
+            let reasons = [];
+
+            // Economy-wide threshold
+            if (combinedTurnover > 200000000 && 
+                (businessesOver50M >= 2 || globalValue > 250000000)) {
+                notificationRequired = true;
+                reasons.push("Economy-wide threshold met");
+            }
+
+            // Very large acquirers threshold
+            if (acquirerTurnover > 500000000 && businessesOver10M >= 2) {
+                notificationRequired = true;
+                reasons.push("Very large acquirers threshold met");
+            }
+
+            // Serial acquirers - medium-to-large
+            if (combinedTurnover > 200000000 && cumulativeTurnover >= 50000000) {
+                notificationRequired = true;
+                reasons.push("Serial acquirers (medium-to-large) threshold met");
+            }
+
+            // Serial acquirers - very large
+            if (acquirerTurnover > 500000000 && cumulativeTurnover >= 10000000) {
+                notificationRequired = true;
+                reasons.push("Serial acquirers (very large) threshold met");
+            }
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.classList.remove('hidden');
+            
+            if (notificationRequired) {
+                resultDiv.className = 'result notification-required';
+                resultDiv.innerHTML = `<strong>Notification is required.</strong><br>Reasons:<br>${reasons.map(r => '- ' + r).join('<br>')}`;
+            } else {
+                resultDiv.className = 'result notification-not-required';
+                resultDiv.innerHTML = '<strong>Notification is not required</strong> based on the provided information.';
+            }
+        }
+    </script>
+</body>
+</html>
